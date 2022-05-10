@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8">
+  <title>Text Ymir</title>
+  
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils@0.6/control_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3/drawing_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.3/hands.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/webmidi@next/dist/iife/webmidi.iife.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.31/Tone.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<style>
+
+    body {
+      bottom: 0;
+      font-family: 'Arial', sans-serif;
+      color: white;
+      left: 0;
+      margin: 0;
+      position: absolute;
+      right: 0;
+      top: 0;
+      transform-origin: 0px 0px;
+      overflow: hidden;
+      background-color: #e9e4e8;
+    }
+    
+    .flipH {
+        display: inline-block;
+        font-size: 25px;
+        transform: scale(-1, 1);
+        -moz-transform: scale(-1, 1);
+        -webkit-transform: scale(-1, 1);
+        -o-transform: scale(-1, 1);
+        -ms-transform: scale(-1, 1);
+        transform: scale(-1, 1);
+    }
+    
+    .input_video {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      
+    }
+    
+    .container {
+      position: absolute;
+      background-color: white;
+      width: 100%;
+      max-height: 100%;
+    }
+    
+    .canvas-container {
+      display:flex;
+      height: 100%;
+      width: 100%;
+      justify-content: right;
+      align-items:center;
+    }
+    
+    .output_canvas {
+      max-width: 100% ;
+      display: block;
+      position: relative;
+      left: 0;
+      top: 0;
+    }
+    
+    .view {
+      position: absolute;
+      left: 10;
+      top: 10;
+      width: fit-content;
+      padding: 10px;
+      font-size: 13px;
+      line-height:  1.8em;
+      border-radius: 8px;
+      z-index: 1;
+    }
+    
+    
+    .header {
+        position: absolute;
+        left: 10;
+        top: 10;
+        width: 100%;
+        padding: 10px;
+        font-size: 13px;
+        line-height:  1.8em;
+        z-index: 1;
+        background-color: #2f3e46;
+      }
+
+
+      .contet {
+        position: absolute;
+        left: 10;
+        top: 78px;
+        width: 25%;
+        height: 90%;
+        padding: 10px;
+        font-size: 13px;
+        line-height:  1.8em;
+        z-index: 1;
+        background-color: #52796f;
+        box-shadow: 0 6px 20px 0 rgba(0, 0, 0, 0.89);
+      }
+      .timerss {
+        position: absolute;
+        left: 720px;
+        top: 520px;
+        padding: 10px;
+        line-height:  1.8em;
+        z-index: 1;
+      }
+    .control-panel {
+      position: absolute;
+      width: 26%;
+      min-width: 320px;
+      background-color: rgba(255, 255, 255, 0.5);
+      font-size: 13px;
+      line-height: 1.8em;
+      color: black;
+      left: 10px;
+      top: 10px;
+      padding: 5px;
+      border-radius: 8px;
+    }
+    
+    button {
+        background-color: lightgrey;
+        color: black;
+        width: 85px;
+        text-align: center;
+        border: none;
+        border-radius: 8px;
+        padding: 5px;
+        margin-bottom: 5px;
+        transition-duration: 0.2s;
+    }
+    
+    .control-panel input[type="button"]:hover {
+      background-color: #056df5;
+      color: white;
+    }
+    
+    .tooltip {
+      position: relative;
+      display: inline-block;
+      color: grey;
+    }
+    
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      width: 120px;
+      background-color: darkgrey;
+      font-size: 11px;
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 5px 0;
+      line-height: 1em;
+      z-index: 1;
+    
+      /* Position the tooltip */
+      position: absolute;
+      z-index: 1;
+    }
+    
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+    }
+    
+    .circle{
+      border-radius: 50%;
+      width: 13px;
+      height: 13px;
+      background: lightgrey;
+      text-align: center;
+      line-height: 13px ;
+    }
+    
+    textarea {
+  width: 100%;
+  height: 250px;
+  padding: 12px 30px;
+  box-sizing: border-box;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  background-color: #f8f8f8;
+  font-size: 16px;
+  resize: none;
+}
+
+
+
+
+
+
+
+
+.base-timer {
+  position: relative;
+  width: 120px;
+  height: 120px;
+}
+
+.base-timer__svg {
+  transform: scaleX(-1);
+}
+
+.base-timer__circle {
+  fill: none;
+  stroke: none;
+}
+
+.base-timer__path-elapsed {
+  stroke-width: 7px;
+  stroke: grey;
+}
+
+.base-timer__path-remaining {
+  stroke-width: 7px;
+  stroke-linecap: round;
+  transform: rotate(90deg);
+  transform-origin: center;
+  transition: 1s linear all;
+  fill-rule: nonzero;
+  stroke: currentColor;
+}
+
+.base-timer__path-remaining.green {
+  color: rgb(65, 184, 131);
+}
+
+.base-timer__path-remaining.orange {
+  color: orange;
+}
+
+.base-timer__path-remaining.red {
+  color: red;
+}
+
+.base-timer__label {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+}
+    
+
+
+
+
+.button {
+  background-color: #2f3e46; /* Green */
+  border: none;
+  color: white;
+  padding: 15px 62px;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 14px;
+  margin: 4px 2px;
+  cursor: pointer;
+  -webkit-transition-duration: 0.4s; /* Safari */
+  transition-duration: 0.4s;
+}
+
+.button2:hover {
+    background-color: #52796f;
+    border: 1px solid white;
+  box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24),0 17px 50px 0 rgba(0,0,0,0.19);
+}
+
+
+
+.trans{
+    font-size: 25px;
+}
+
+
+
+#iconss{
+    font-size: 24px;
+}
+
+
+.gifss{
+  position: absolute;
+        right: 40px;
+        top: 50px;
+        width: 900px ;
+        height: 600px;
+        padding: 10px;
+        font-size: 13px;
+        line-height:  1.8em;
+        z-index: 1;
+}
+
+
+
+
+
+
+@media only screen and (min-device-width:225px) and (max-device-width: 980px ){
+
+
+    body {
+      bottom: 0;
+      font-family: 'Arial', sans-serif;
+      color: white;
+      left: 0;
+      margin: 0;
+      position: absolute;
+      right: 0;
+      top: 0;
+      transform-origin: 0px 0px;
+      overflow: hidden;
+    }
+    
+    .flipH {
+        display: inline-block;
+        font-size: 25px;
+        transform: scale(-1, 1);
+        -moz-transform: scale(-1, 1);
+        -webkit-transform: scale(-1, 1);
+        -o-transform: scale(-1, 1);
+        -ms-transform: scale(-1, 1);
+        transform: scale(-1, 1);
+    }
+    
+    .input_video {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      
+    }
+    
+    .container {
+      position: absolute;
+      background-color: white;
+      width: 100%;
+      max-height: 100%;
+    }
+    
+    .canvas-container {
+      display:flex;
+      height: 100%;
+      width: 100%;
+      justify-content: right;
+      align-items:center;
+    }
+    
+    .output_canvas {
+      max-width: 100% ;
+      display: block;
+      position: relative;
+      left: 0;
+      top: 0;
+    }
+    
+    .view {
+      position: absolute;
+      left: 10;
+      top: 10;
+      width: fit-content;
+      padding: 10px;
+      font-size: 13px;
+      line-height:  1.8em;
+      border-radius: 8px;
+      z-index: 1;
+    }
+    
+    
+    .header {
+        position: absolute;
+        left: 10;
+        top: 10;
+        width: 100%;
+        padding: 10px;
+        font-size: 13px;
+        line-height:  1.8em;
+        z-index: 1;
+        background-color: #2f3e46;
+      }
+
+
+      .contet {
+        position: absolute;
+        left: 10;
+        top: 32%;
+        width: 100%;
+        height: 90%;
+        padding: 10px;
+        font-size: 13px;
+        line-height:  1.8em;
+        z-index: 1;
+        background-color: #52796f;
+        box-shadow: 0 6px 20px 0 rgba(0, 0, 0, 0.89);
+      }
+      .timerss {
+        position: absolute;
+        left: 430px;
+        top: 500px;
+        padding: 10px;
+        line-height:  1.8em;
+        z-index: 1;
+      }
+    .control-panel {
+      position: absolute;
+      width: 26%;
+      min-width: 320px;
+      background-color: rgba(255, 255, 255, 0.5);
+      font-size: 13px;
+      line-height: 1.8em;
+      color: black;
+      left: 10px;
+      top: 10px;
+      padding: 5px;
+      border-radius: 8px;
+    }
+    
+    button {
+        background-color: lightgrey;
+        color: black;
+        width: 85px;
+        text-align: center;
+        border: none;
+        border-radius: 8px;
+        padding: 5px;
+        margin-bottom: 5px;
+        transition-duration: 0.2s;
+    }
+    
+    .control-panel input[type="button"]:hover {
+      background-color: #056df5;
+      color: white;
+    }
+    
+    .tooltip {
+      position: relative;
+      display: inline-block;
+      color: grey;
+    }
+    
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      width: 120px;
+      background-color: darkgrey;
+      font-size: 11px;
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 5px 0;
+      line-height: 1em;
+      z-index: 1;
+    
+      /* Position the tooltip */
+      position: absolute;
+      z-index: 1;
+    }
+    
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+    }
+    
+    .circle{
+      border-radius: 50%;
+      width: 13px;
+      height: 13px;
+      background: lightgrey;
+      text-align: center;
+      line-height: 13px ;
+    }
+    
+    textarea {
+  width: 100%;
+  height: 350px;
+  padding: 12px 30px;
+  box-sizing: border-box;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  background-color: #f8f8f8;
+  font-size: 16px;
+  resize: none;
+}
+
+
+
+
+
+
+
+
+
+
+.base-timer {
+  position: relative;
+  width: 120px;
+  height: 120px;
+}
+
+.base-timer__svg {
+  transform: scaleX(-1);
+}
+
+.base-timer__circle {
+  fill: none;
+  stroke: none;
+}
+
+.base-timer__path-elapsed {
+  stroke-width: 7px;
+  stroke: grey;
+}
+
+.base-timer__path-remaining {
+  stroke-width: 7px;
+  stroke-linecap: round;
+  transform: rotate(90deg);
+  transform-origin: center;
+  transition: 1s linear all;
+  fill-rule: nonzero;
+  stroke: currentColor;
+}
+
+.base-timer__path-remaining.green {
+  color: rgb(65, 184, 131);
+}
+
+.base-timer__path-remaining.orange {
+  color: orange;
+}
+
+.base-timer__path-remaining.red {
+  color: red;
+}
+
+.base-timer__label {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+}
+    
+
+
+
+
+.button {
+  background-color: #2f3e46; /* Green */
+  border: none;
+  color: white;
+  padding: 120px 182px;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 14px;
+  margin: 90px 50px;
+  cursor: pointer;
+  -webkit-transition-duration: 0.4s; /* Safari */
+  transition-duration: 0.4s;
+}
+
+.button2:hover {
+    background-color: #52796f;
+    border: 1px solid white;
+  box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24),0 17px 50px 0 rgba(0,0,0,0.19);
+}
+
+
+
+.trans{
+    font-size: 50px;
+}
+
+
+#iconss{
+    font-size: 140px;
+}
+
+}
+    
+      </style>
+<body>
+  <div class="container">
+    <video class="input_video"></video>
+    <div class="canvas-container">
+      <img src="sampllss.gif" class="gifss" alt="Computer man" >
+    </div>
+  </div>
+  <div class="view">
+    <button onclick="toggleControl()" id="controlButton" style="display: none;">Hide controls</button>
+  </div>
+  <div class="header">
+    <h1> YMIR Prototype</h1>
+  </div>
+
+  <div class="contet"><br>
+      <p class="trans">Text to FSL</p>
+    <Textarea>     Sana Maka pasa kame sa Thesis Defence namin ngayun ..</Textarea>
+    <br>
+    <button onclick="location.href='track.php'" class="button button2"><i class="fa fa-hand-spock-o" id="iconss" ></i></button>
+    <button onclick="location.href='text.php'" class="button button2"><i class="fa fa-font" id="iconss"></i></button>
+    
+  </div>
+  <div class="timerss">
+  <div id="app"></div>
+</div>
+
+  <div class="control-panel" style="display: none;">
+    <br><br>
+    Selfie view<input id="selfie" type="checkbox" checked="checked">
+    Show tracking <input id="showTracking" type="checkbox" checked="checked">
+    Fps <span id="fps"></span>
+    <hr> 
+
+    <div class="select">
+        <label for="videoSource">Camera </label><select id="videoSource"></select>
+    </div>
+
+    <div id="dropdown">
+      MIDI out device
+      <select id="device" onchange="changeDevice()">
+      </select>
+    </div>
+    <hr>
+
+
+    <!--Automate bpm<div class="tooltip circle"><sup><i>i</i></sup>
+      <span class="tooltiptext">Control bpm with movement, range between 20 - 500</span>
+      </div>
+      <input id="autoBpm" type="checkbox">
+      <label class="label"
+      for="bpmControlInput"></label>
+        <select name="bpmControlInput" id="bpmControlInput">
+          <option value="leftIndexX">Left index x</option>
+          <option value="leftIndexY">Left index y</option>
+          <option value="leftClosed">Left hand closed</option>
+          <option value="rightIndexX" selected>Right index x</option>
+          <option value="rightIndexY">Right index y</option>
+          <option value="rightClosed">Right hand closed</option>
+          <option value="indexDistance">Index distance</option>
+        </select><br>-->
+
+
+    <b>Send midi notes<div class="tooltip circle"><sup><i>i</i></sup>
+      <span class="tooltiptext">Check box to send continous stream of midi notes</span>
+      </div></b><input id="sendMidi" type="checkbox"><br>
+    BPM<input type="range" id="bpm" name="bpm" min="20" max="500" step="1" value="120">
+      <label for="bpm"></label>
+      <span id="bpmValue" class="rangeValue">120</span><br>
+    <label for="channel">Channel:<div class="tooltip circle"><sup><i>i</i></sup>
+      <span class="tooltiptext">1-16 channels</span>
+      </div>
+    </label>
+    <input type="number" id="midiChannel" min="1" max="16" value="1"/><br>
+    Note pitch<div class="tooltip circle"><sup><i>i</i></sup>
+      <span class="tooltiptext">Control note pitch with movement. If none selected, note will not be generated</span>
+      </div>
+      <label class="label"
+      for="midiControlInput"></label>
+        <select name="midiControlInput" id="midiControlInput">
+          <option value="nil" selected>----</option>
+          <option value="leftIndexX">Left index x</option>
+          <option value="leftIndexY">Left index y</option>
+          <option value="leftClosed">Left hand closed</option>
+          <option value="rightIndexX">Right index x</option>
+          <option value="rightIndexY">Right index y</option>
+          <option value="rightClosed">Right hand closed</option>
+          <option value="indexDistance">Index distance</option>
+        </select><br>
+      Note velocity<div class="tooltip circle"><sup><i>i</i></sup>
+      <span class="tooltiptext">Control note velocity with movement. If none selected, note velocity is maximum</span>
+      </div>
+      <label class="label"
+      for="midiVelInput"></label>
+        <select name="midiVelInput" id="midiVelInput">
+          <option value="nil" selected>----</option>
+          <option value="leftIndexX">Left index x</option>
+          <option value="leftIndexY">Left index y</option>
+          <option value="leftClosed">Left hand closed</option>
+          <option value="rightIndexX">Right index x</option>
+          <option value="rightIndexY">Right index y</option>
+          <option value="rightClosed">Right hand closed</option>
+          <option value="indexDistance">Index distance</option>
+        </select><br>
+      <hr>
+
+
+      <b>Continous controls<div class="tooltip circle"><sup><i>i</i></sup>
+      <span class="tooltiptext">Send midi CC</span>
+      </div></b><br>
+      Pitchbend
+      <label class="label"
+      for="pitchBendInput"></label>
+        <select name="pitchBendInput" id="pitchBendInput">
+          <option value="nil" selected>----</option>
+          <option value="leftIndexX">Left index x</option>
+          <option value="leftIndexY">Left index y</option>
+          <option value="leftClosed">Left hand closed</option>
+          <option value="rightIndexX">Right index x</option>
+          <option value="rightIndexY">Right index y</option>
+          <option value="rightClosed">Right hand closed</option>
+          <option value="indexDistance">Index distance</option>
+        </select><br>
+      Aftertouch
+      <label class="label"
+      for="aftertouchInput"></label>
+        <select name="aftertouchInput" id="aftertouchInput">
+          <option value="nil" selected>----</option>
+          <option value="leftIndexX">Left index x</option>
+          <option value="leftIndexY">Left index y</option>
+          <option value="leftClosed">Left hand closed</option>
+          <option value="rightIndexX">Right index x</option>
+          <option value="rightIndexY">Right index y</option>
+          <option value="rightClosed">Right hand closed</option>
+          <option value="indexDistance">Index distance</option>
+        </select><br>
+      <label for="cc1Channel">Chan:<div class="tooltip circle"><sup><i>i</i></sup>
+      <span class="tooltiptext">1-16 channels</span>
+      </div>
+      </label>
+      <input type="number" id="cc1Channel" min="1" max="16" value="1"/>
+      <label for="cc1Controller">CC:<div class="tooltip circle"><sup><i>i</i></sup>
+      <span class="tooltiptext">0-127</span>
+      </div>
+      </label>
+      <input type="number" id="cc1Controller" min="0" max="127" value="1"/>
+      <label class="label"
+      for="cc1Input"></label>
+        <select name="cc1Input" id="cc1Input">
+          <option value="nil" selected>----</option>
+          <option value="leftIndexX">Left index x</option>
+          <option value="leftIndexY">Left index y</option>
+          <option value="leftClosed">Left hand closed</option>
+          <option value="rightIndexX">Right index x</option>
+          <option value="rightIndexY">Right index y</option>
+          <option value="rightClosed">Right hand closed</option>
+          <option value="indexDistance">Index distance</option>
+        </select><br>
+      <label for="cc2Channel">Chan:<div class="tooltip circle"><sup><i>i</i></sup>
+      <span class="tooltiptext">1-16 channels</span>
+      </div>
+      </label>
+      <input type="number" id="cc2Channel" min="1" max="16" value="2"/>
+      <label for="cc2Controller">CC:<div class="tooltip circle"><sup><i>i</i></sup>
+      <span class="tooltiptext">0-127</span>
+      </div>
+      </label>
+      <input type="number" id="cc2Controller" min="0" max="127" value="2"/>
+      <label class="label"
+      for="cc2Input"></label>
+        <select name="cc2Input" id="cc2Input">
+          <option value="nil" selected>----</option>
+          <option value="leftIndexX">Left index x</option>
+          <option value="leftIndexY">Left index y</option>
+          <option value="leftClosed">Left hand closed</option>
+          <option value="rightIndexX">Right index x</option>
+          <option value="rightIndexY">Right index y</option>
+          <option value="rightClosed">Right hand closed</option>
+          <option value="indexDistance">Index distance</option>
+        </select><br>
+      <label for="cc3Channel">Chan:<div class="tooltip circle"><sup><i>i</i></sup>
+      <span class="tooltiptext">1-16 channels</span>
+      </div>
+      </label>
+      <input type="number" id="cc3Channel" min="1" max="16" value="3"/>
+      <label for="cc3Controller">CC:<div class="tooltip circle"><sup><i>i</i></sup>
+      <span class="tooltiptext">0-127</span>
+      </div>
+      </label>
+      <input type="number" id="cc3Controller" min="0" max="127" value="3"/>
+      <label class="label"
+      for="cc3Input"></label>
+        <select name="cc3Input" id="cc3Input">
+          <option value="nil" selected>----</option>
+          <option value="leftIndexX">Left index x</option>
+          <option value="leftIndexY">Left index y</option>
+          <option value="leftClosed">Left hand closed</option>
+          <option value="rightIndexX">Right index x</option>
+          <option value="rightIndexY">Right index y</option>
+          <option value="rightClosed">Right hand closed</option>
+          <option value="indexDistance">Index distance</option>
+        </select><br>
+      <label for="cc4Channel">Chan:<div class="tooltip circle"><sup><i>i</i></sup>
+      <span class="tooltiptext">1-16 channels</span>
+      </div>
+      </label>
+      <input type="number" id="cc4Channel" min="1" max="16" value="4"/>
+      <label for="cc4Controller">CC:<div class="tooltip circle"><sup><i>i</i></sup>
+      <span class="tooltiptext">0-127</span>
+      </div>
+      </label>
+      <input type="number" id="cc4Controller" min="0" max="127" value="4"/>
+      <label class="label"
+      for="cc4Input"></label>
+        <select name="cc4Input" id="cc4Input">
+          <option value="nil" selected>----</option>
+          <option value="leftIndexX">Left index x</option>
+          <option value="leftIndexY">Left index y</option>
+          <option value="leftClosed">Left hand closed</option>
+          <option value="rightIndexX">Right index x</option>
+          <option value="rightIndexY">Right index y</option>
+          <option value="rightClosed">Right hand closed</option>
+          <option value="indexDistance">Index distance</option>
+        </select><br>
+      <hr>
+
+
+      <b>Gesture Recognition<div class="tooltip circle"><sup><i>i</i></sup>
+        <span class="tooltiptext">Check box to start gesture recognition to trigger Midi notes</span>
+        </div></b><input id="gesture" type="checkbox"><br>
+      <label for="channel">Channel:<div class="tooltip circle"><sup><i>i</i></sup>
+        <span class="tooltiptext">1-16 channels</span>
+        </div>
+      </label>
+      <input type="number" id="trigger1Channel" min="1" max="16" />
+      <label for="midi1NoteInput">Midi note:<div class="tooltip circle"><sup><i>i</i></sup>
+        <span class="tooltiptext">0-127</span>
+        </div>
+      </label>
+      <input type="number" id="midi1NoteInput" min="0" max="127" value="60"/>
+      <span style='font-size: 25px;'>&#128073&#128072;</span><div class="tooltip circle"><sup><i>i</i></sup>
+        <span class="tooltiptext">index fingers touching</span>
+        </div><br>
+      <label for="channel">Channel:<div class="tooltip circle"><sup><i>i</i></sup>
+        <span class="tooltiptext">1-16 channels</span>
+        </div>
+      </label>
+      <input type="number" id="trigger2Channel" min="1" max="16" />
+      <label for="midi2NoteInput">Midi note:<div class="tooltip circle"><sup><i>i</i></sup>
+        <span class="tooltiptext">0-127</span>
+        </div>
+      </label>
+      <input type="number" id="midi2NoteInput" min="0" max="127" value="60"/>
+      <span class="flipH">&#9995;</span><div class="tooltip circle"><sup><i>i</i></sup>
+        <span class="tooltiptext">back of left hand facing screen</span>
+        </div><br>
+      <label for="channel">Channel:<div class="tooltip circle"><sup><i>i</i></sup>
+        <span class="tooltiptext">1-16 channels</span>
+        </div>
+      </label>
+      <input type="number" id="trigger3Channel" min="1" max="16" />
+      <label for="midi3NoteInput">Midi note:<div class="tooltip circle"><sup><i>i</i></sup>
+        <span class="tooltiptext">0-127</span>
+        </div>
+      </label>
+      <input type="number" id="midi3NoteInput" min="0" max="127" value="60"/>
+      <span style='font-size: 25px;'>&#9995;</span><div class="tooltip circle"><sup><i>i</i></sup>
+        <span class="tooltiptext">back of right hand facing screen</span>
+        </div><br>
+
+
+  </div> 
+  <script type="text/javascript" src="script.js"></script>
+</body>
+</html>
